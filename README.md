@@ -55,15 +55,15 @@ or if your file is an image and you want to render it in the UI, you can use the
 
 ```dart
 FutureBuilder(
-            future: CacheSystem().getFile(Uri.parse(
-                'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs')),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Image.file(File(snapshot.data!.path));
-              }
-              return const SizedBox();
-            },
-          );
+      future: CacheSystem().getFile(Uri.parse(
+          'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs')),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return Image.file(File(snapshot.data!.path));
+        }
+        return const SizedBox();
+      },
+    );
 ```
 
 If you want get all the cached files, you can use the `CacheSystem().getAllFiles()` function. This function returns a `Future` which will return a list of all the cached files.
