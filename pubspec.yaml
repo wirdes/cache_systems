@@ -1,5 +1,5 @@
 name: cache_systems
-description: A new Flutter package project.
+description: This package for flutter is used to cache files in the device. It can be used to cache images, videos, audios, text and other files. It can also be used to cache files from the internet.
 version: 0.0.1
 homepage: https://www.merterim.dev
 

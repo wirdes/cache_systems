@@ -24,7 +24,7 @@ class CacheSystem {
     _stalePeriod = stalePeriod;
   }
 
-  String getFileType({CacheFileType? fileType, String? name}) {
+  String _getFileType({CacheFileType? fileType, String? name}) {
     if (fileType != null) {
       switch (fileType) {
         case CacheFileType.image:
@@ -82,7 +82,7 @@ class CacheSystem {
         _cacheDB.delete(url.toString());
         return await getFile(url, process: process, name: name);
       }
-      return XFile(file.path);
+      return XFile(file.path, mimeType: file.fileType);
     } else {
       final tmpDirectory = await getApplicationDocumentsDirectory();
       final String newPath = '${tmpDirectory.path}/${name ?? url.toString()}';
@@ -95,13 +95,13 @@ class CacheSystem {
         url.toString(),
         CacheFile(
           newPath,
-          getFileType(fileType: fileType, name: name),
+          _getFileType(fileType: fileType, name: name),
           expiration:
               _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
         ),
       );
 
-      return XFile(newPath);
+      return XFile(newPath, mimeType: _getFileType(fileType: fileType));
     }
   }
 

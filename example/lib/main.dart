@@ -50,32 +50,95 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Center(
-            child: Text(
-              'Cache Systems Demo',
-              style: TextStyle(fontSize: 24),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Center(
+                  child: Text(
+                    'Cache Systems Demo',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.network(
+                        'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs',
+                        height: 100,
+                        width: 100,
+                      ),
+                    ),
+                    FutureBuilder(
+                      future: CacheSystem().getFile(
+                        Uri.parse(
+                          'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs',
+                        ),
+                        fileType: CacheFileType.image,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.file(
+                              File(snapshot.data!.path),
+                              height: 100,
+                              width: 100,
+                            ),
+                          );
+                        }
+                        return const SizedBox();
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Image.network(
-            'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs',
-            width: 200,
-            height: 300,
-          ),
-          FutureBuilder(
-            future: CacheSystem().getFile(Uri.parse(
-                'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs')),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Image.file(
-                  File(snapshot.data!.path),
-                  width: 200,
-                  height: 300,
-                );
-              }
-              return const SizedBox();
-            },
+          Expanded(
+            child: Column(
+              children: [
+                const Text('Cached Images'),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                    ),
+                    itemCount: files.length,
+                    itemBuilder: (context, index) {
+                      final file = files[index];
+                      if (file?.mimeType != null &&
+                          file?.mimeType?.contains('image') == true) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image.file(
+                            File(file!.path),
+                            height: 100,
+                            width: 100,
+                          ),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: 100,
+                            width: 100,
+                            color: Colors.grey,
+                            child: Text(
+                              file?.mimeType ?? 'Unknown',
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
