@@ -51,7 +51,7 @@ Future<XFile?> cacheFile() async {
 }
 ```
 
-    or if your file is an image and you want to render it in the UI, you can use the FutureBuilder widget to render the image.
+or if your file is an image and you want to render it in the UI, you can use the FutureBuilder widget to render the image.
 
 ```dart
 FutureBuilder(
@@ -75,42 +75,40 @@ Future<List<XFile?>> getAllFiles() async {
 }
 ```
 
-    or if you want to render all the cached file in the UI, you can use like this.
+or if you want to render all the cached file in the UI, you can use like this.
 
 ```dart
 GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                    ),
-                    itemCount: files.length,
-                    itemBuilder: (context, index) {
-                      final file = files[index];
-                      if (file?.mimeType != null &&
-                          file?.mimeType?.contains('image') == true) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Image.file(
-                            File(file!.path),
-                            height: 100,
-                            width: 100,
-                          ),
-                        );
-                      } else {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            height: 100,
-                            width: 100,
-                            color: Colors.grey,
-                            child: Text(
-                              file?.mimeType ?? 'Unknown',
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                  );
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+      ),
+      itemCount: files.length,
+      itemBuilder: (context, index) {
+        final file = files[index];
+        if (file?.mimeType != null &&
+            file?.mimeType?.contains('image') == true) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.file(
+              File(file!.path),
+              height: 100,
+              width: 100,
+            ),
+          );
+        } else {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: 100,
+              width: 100,
+              color: Colors.grey,
+              child: Text(
+                file?.mimeType ?? 'Unknown',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+      },
+    );
 ```
-
