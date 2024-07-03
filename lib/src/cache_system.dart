@@ -1,24 +1,34 @@
+import 'dart:io';
 import 'package:cache_systems/src/model/cache_file_adapter.dart';
 import 'package:dio/dio.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:universal_io/io.dart';
 
-enum CacheFileType { image, video, audio, pdf }
+enum CacheFileType {
+  image,
+  video,
+  audio,
+  pdf
+}
+
+const String _cacheName = 'cache';
 
 class CacheSystem {
   static final CacheSystem _instance = CacheSystem._();
   factory CacheSystem() => _instance;
   CacheSystem._();
   final Dio _dio = Dio();
-  final String _cacheName = 'cache';
   late Box<CacheFile> _cacheDB;
   Duration? _stalePeriod;
 
   Future<void> init({Duration? stalePeriod}) async {
-    await Hive.initFlutter();
+    if ((kIsWeb)) {
+      throw Exception('CacheSystem is not supported on web platform');
+    }
+    final path = (await getApplicationDocumentsDirectory()).path;
+    Hive.init(path);
     Hive.registerAdapter(CacheFileAdapter());
     _cacheDB = await Hive.openBox<CacheFile>(_cacheName);
     _stalePeriod = stalePeriod;
@@ -69,7 +79,7 @@ class CacheSystem {
     }
   }
 
-  Future<XFile?> getFile(
+  Future<File?> get(
     Uri url, {
     void Function(int, int)? process,
     String? name,
@@ -77,36 +87,46 @@ class CacheSystem {
   }) async {
     CacheFile? file = _cacheDB.get(url.toString());
     if (file != null) {
-      if (file.expiration != null &&
-          file.expiration!.isBefore(DateTime.now())) {
+      if (file.expiration != null && file.expiration!.isBefore(DateTime.now())) {
         _cacheDB.delete(url.toString());
-        return await getFile(url, process: process, name: name);
+        return await get(url, process: process, name: name);
       }
-      return XFile(file.path, mimeType: file.fileType);
+      return File(file.path);
     } else {
       final tmpDirectory = await getApplicationDocumentsDirectory();
       final String newPath = '${tmpDirectory.path}/${name ?? url.toString()}';
-      final res =
-          await _dio.downloadUri(url, newPath, onReceiveProgress: process);
+      final res = await _dio.downloadUri(url, newPath, onReceiveProgress: process);
       if (res.statusCode != 200) {
-        throw Exception("download file error");
+        throw Exception('Failed to download file');
       }
       await _cacheDB.put(
         url.toString(),
         CacheFile(
           newPath,
           _getFileType(fileType: fileType, name: name),
-          expiration:
-              _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
+          expiration: _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
         ),
       );
 
-      return XFile(newPath, mimeType: _getFileType(fileType: fileType));
+      return File(newPath);
     }
   }
 
+  Future<ImageProvider> getImageProvider(
+    Uri url, {
+    void Function(int, int)? process,
+    String? name,
+  }) async {
+    final file = await get(
+      url,
+      process: process,
+      name: name,
+      fileType: CacheFileType.image,
+    );
+    return FileImage(file!);
+  }
+
   Future<void> deleteFile(Uri url) async {
-    if (kIsWeb) return;
     CacheFile? file = _cacheDB.get(url.toString());
     if (file != null) {
       await _cacheDB.delete(url.toString());
@@ -115,7 +135,6 @@ class CacheSystem {
   }
 
   Future<void> clear() async {
-    if (kIsWeb) return;
     await _cacheDB.clear();
     final tmpDirectory = await getApplicationDocumentsDirectory();
     final dir = Directory(tmpDirectory.path);
@@ -124,19 +143,7 @@ class CacheSystem {
     }
   }
 
-  Future<void> close() async {
-    await _cacheDB.close();
-  }
-
-  Future<void> delete() async {
-    if (kIsWeb) return;
-    await _cacheDB.deleteFromDisk();
-  }
-
-  Future<List<XFile?>> getAllFile() async {
-    if (kIsWeb) return [];
-    return _cacheDB.values
-        .map((e) => XFile(e.path, mimeType: e.fileType))
-        .toList();
+  Future<List<File?>> getAllFile() async {
+    return _cacheDB.values.map((e) => File(e.path)).toList();
   }
 }

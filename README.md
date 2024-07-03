@@ -8,7 +8,7 @@ This package for flutter is used to cache files in the device. It can be used to
 
 | macOS | Windows | Linux | Web | Android | iOS |
 | :---: | :-----: | :---: | :-: | :-----: | :-: |
-|  ❌   |   ❌    |  ❌   | ❌  |   ✅    | ✅  |
+|  ✅   |   ✅    |  ✅   | ❌  |   ✅    | ✅  |
 
 # Install
 
@@ -43,9 +43,9 @@ Future<void> main() async {
 To cache files from the internet, use the `CacheSystem().getFile()` function. This function takes the url of the file to be cached as the parameter. Url type must Uri. It returns a `Future` which will return the path of the cached file. The cached file will be deleted after the stale period.
 
 ```dart
-Future<XFile?> cacheFile() async {
+Future<File?> cacheFile() async {
   final String url = 'https://www.example.com/image.png';
-  final XFile? file = CacheSystem().getFile(Uri.parse(
+  final File? file = CacheSystem().getFile(Uri.parse(
                 'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs'));
     return file;
 }
@@ -59,7 +59,7 @@ FutureBuilder(
           'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs')),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return Image.file(File(snapshot.data!.path));
+          return Image.file(snapshot.data!);
         }
         return const SizedBox();
       },
@@ -69,8 +69,8 @@ FutureBuilder(
 If you want get all the cached files, you can use the `CacheSystem().getAllFiles()` function. This function returns a `Future` which will return a list of all the cached files.
 
 ```dart
-Future<List<XFile?>> getAllFiles() async {
-  final List<XFile> files = await CacheSystem().getAllFiles();
+Future<List<File?>> getAllFiles() async {
+  final List<File> files = await CacheSystem().getAllFiles();
   return files;
 }
 ```
@@ -85,30 +85,14 @@ GridView.builder(
       itemCount: files.length,
       itemBuilder: (context, index) {
         final file = files[index];
-        if (file?.mimeType != null &&
-            file?.mimeType?.contains('image') == true) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.file(
-              File(file!.path),
+              file!,
               height: 100,
               width: 100,
             ),
           );
-        } else {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 100,
-              width: 100,
-              color: Colors.grey,
-              child: Text(
-                file?.mimeType ?? 'Unknown',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
       },
     );
 ```
