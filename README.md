@@ -18,8 +18,7 @@ This package for flutter is used to cache files in the device. It can be used to
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^0.1.2
-  cache_systems: ^0.0.1
+  cache_systems: ^0.0.3
 ```
 
 - Run `flutter packages get` from your root project
