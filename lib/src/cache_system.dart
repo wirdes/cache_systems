@@ -23,6 +23,12 @@ class CacheSystem {
   late Box<CacheFile> _cacheDB;
   Duration? _stalePeriod;
 
+  /// Initialize the cache system
+  /// [stalePeriod] is the duration of time that the cache will be considered stale
+  /// if not provided, the cache will never be considered stale
+  /// [stalePeriod] is only used when the cache is being retrieved
+  /// [stalePeriod] is not used when the cache is being stored
+
   Future<void> init({Duration? stalePeriod}) async {
     if ((kIsWeb)) {
       throw Exception('CacheSystem is not supported on web platform');
@@ -79,7 +85,14 @@ class CacheSystem {
     }
   }
 
-  Future<File?> get(
+  /// Get a file from the cache
+  /// [url] is the url of the file to be downloaded
+  /// [process] is a callback that will be called with the number of bytes received and the total number of bytes
+  /// [name] is the name of the file to be stored in the cache
+  /// [fileType] is the type of the file to be stored in the cache
+  /// if [fileType] is not provided, the file type will be inferred from the [name] if provided
+  /// if [fileType] is not provided and [name] is not provided, the file type will be 'file'
+  Future<CacheFile?> get(
     Uri url, {
     void Function(int, int)? process,
     String? name,
@@ -91,7 +104,7 @@ class CacheSystem {
         _cacheDB.delete(url.toString());
         return await get(url, process: process, name: name);
       }
-      return File(file.path);
+      return file;
     } else {
       final tmpDirectory = await getApplicationDocumentsDirectory();
       final String newPath = '${tmpDirectory.path}/${name ?? url.toString()}';
@@ -99,20 +112,23 @@ class CacheSystem {
       if (res.statusCode != 200) {
         throw Exception('Failed to download file');
       }
-      await _cacheDB.put(
-        url.toString(),
-        CacheFile(
-          newPath,
-          _getFileType(fileType: fileType, name: name),
-          expiration: _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
-        ),
+      final newFile = CacheFile(
+        newPath,
+        _getFileType(fileType: fileType, name: name),
+        expiration: _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
       );
+      await _cacheDB.put(url.toString(), newFile);
 
-      return File(newPath);
+      return newFile;
     }
   }
 
-  Future<ImageProvider> getImageProvider(
+  /// Get a image provider from the cache
+  /// [url] is the url of the image to be downloaded
+  /// [process] is a callback that will be called with the number of bytes received and the total number of bytes
+  /// [name] is the name of the image to be stored in the cache
+
+  Future<ImageProvider?> getImageProvider(
     Uri url, {
     void Function(int, int)? process,
     String? name,
@@ -123,7 +139,10 @@ class CacheSystem {
       name: name,
       fileType: CacheFileType.image,
     );
-    return FileImage(file!);
+    if (file == null) {
+      return null;
+    }
+    return FileImage(File(file.path));
   }
 
   Future<void> deleteFile(Uri url) async {
@@ -143,7 +162,7 @@ class CacheSystem {
     }
   }
 
-  Future<List<File?>> getAllFile() async {
-    return _cacheDB.values.map((e) => File(e.path)).toList();
+  Future<List<CacheFile?>> getAllFile() async {
+    return _cacheDB.values.toList();
   }
 }

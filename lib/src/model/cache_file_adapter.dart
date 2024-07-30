@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:hive/hive.dart';
 
 part 'cache_file_adapter.g.dart';
@@ -15,4 +17,6 @@ class CacheFile {
     this.fileType, {
     this.expiration,
   });
+
+  File get file => File(path);
 }

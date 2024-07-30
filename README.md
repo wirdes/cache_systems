@@ -10,6 +10,8 @@ This package for flutter is used to cache files in the device. It can be used to
 | :---: | :-----: | :---: | :-: | :-----: | :-: |
 |  ✅   |   ✅    |  ✅   | ❌  |   ✅    | ✅  |
 
+** For web support you need to add a service worker to your web project. You can find the details at the bottom of the documentation
+
 # Install
 
 - Add `cache_systems` to your dependencies list in `pubspec.yaml` file
@@ -18,7 +20,7 @@ This package for flutter is used to cache files in the device. It can be used to
 dependencies:
   flutter:
     sdk: flutter
-  cache_systems: ^0.0.3
+  cache_systems: ^0.0.4
 ```
 
 - Run `flutter packages get` from your root project
@@ -39,59 +41,155 @@ Future<void> main() async {
 }
 ```
 
-To cache files from the internet, use the `CacheSystem().getFile()` function. This function takes the url of the file to be cached as the parameter. Url type must Uri. It returns a `Future` which will return the path of the cached file. The cached file will be deleted after the stale period.
+To cache files from the internet, use the `CacheSystem().get()` function. This function takes the url of the file to be cached as the parameter. Url type must Uri. It returns a `Future` which will return a `CacheFile` object.
 
 ```dart
-Future<File?> cacheFile() async {
-  final String url = 'https://www.example.com/image.png';
-  final File? file = CacheSystem().getFile(Uri.parse(
-                'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs'));
-    return file;
+class CacheFile {
+  @HiveField(0)
+  String path;
+  @HiveField(1)
+  DateTime? expiration;
+  @HiveField(2)
+  String fileType;
+  CacheFile(
+    this.path,
+    this.fileType, {
+    this.expiration,
+  });
+
+  File get file => File(path);
 }
+```
+
+`CacheFile` object contains the path of the cached file, the expiration date of the file and the type of the file. The `file` property of the `CacheFile` object returns the `File` object of the cached file.
+
+```dart
+  final String url = Uri.parse('https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs');
+  final CacheFile? cachedfile = await CacheSystem().get(url);
+  if (cachedfile != null) {
+    print(cachedfile.file.path);
+  }
 ```
 
 or if your file is an image and you want to render it in the UI, you can use the FutureBuilder widget to render the image.
 
 ```dart
-FutureBuilder(
-      future: CacheSystem().getFile(Uri.parse(
-          'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs')),
+    FutureBuilder<CacheFile?>(
+      future: CacheSystem().get(
+        imgUri,
+        fileType: CacheFileType.image,
+      ),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return Image.file(snapshot.data!);
-        }
-        return const SizedBox();
-      },
-    );
-```
-
-If you want get all the cached files, you can use the `CacheSystem().getAllFiles()` function. This function returns a `Future` which will return a list of all the cached files.
-
-```dart
-Future<List<File?>> getAllFiles() async {
-  final List<File> files = await CacheSystem().getAllFiles();
-  return files;
-}
-```
-
-or if you want to render all the cached file in the UI, you can use like this.
-
-```dart
-GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-      ),
-      itemCount: files.length,
-      itemBuilder: (context, index) {
-        final file = files[index];
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.file(
-              file!,
+              snapshot.data!.file,
               height: 100,
               width: 100,
             ),
           );
+        }
+        return const SizedBox.shrink();
       },
     );
+```
+
+or you can use the `CachedImage` widget to render the image. The `CachedImage` widget takes the url of the image as the parameter and returns an `Image` widget.
+
+```dart
+    CachedImage(url: imgUri)
+```
+
+If you want get all the cached files, you can use the `CacheSystem().getAllFiles()` function. This function returns a `Future` which will return a list of `CacheFile` objects.
+
+```dart
+  final List<CacheFile?> files = await CacheSystem().getAllFiles();
+  for (final file in files) {
+    print(file!.file.path);
+  }
+```
+
+### Web Support (Service Worker)
+
+To use the cache system in the web, you need to add a service worker to your web project. You can add a service worker by creating a `web` folder in your project and adding a `service_worker.js` file to the `web` folder. The `service_worker.js` file should contain the following code.
+
+```javascript
+const BASE_URL = "https://fastly.picsum.photos"; //the url of the files you want to cache
+
+const cacheName = "file-cache-v3.1"; // Change the cache name to update the cache
+
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+  event.waitUntil(caches.open(cacheName));
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("Activating Cache service worker");
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.url.includes(BASE_URL)) {
+    event.respondWith(
+      caches
+        .match(event.request)
+        .then((response) => {
+          if (response) {
+            return response;
+          }
+
+          return fetch(event.request).then((response) => {
+            return caches.open(cacheName).then((cache) => {
+              cache.put(event.request.url, response.clone());
+              return response;
+            });
+          });
+        })
+        .catch(async (error) => {
+          console.log("Error fetching from cache", error);
+        })
+    );
+  }
+});
+```
+
+After adding the `service_worker.js` file, you need to add the service worker to the `index.html` file of your web project. Add the following code to the `index.html` file.
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <base href="$FLUTTER_BASE_HREF" />
+    <meta charset="UTF-8" />
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+    <meta name="description" content="A new Flutter project." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="example" />
+    <link rel="apple-touch-icon" href="icons/Icon-192.png" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <title>example</title>
+    <link rel="manifest" href="manifest.json" />
+    <--- Add the following code to add the service worker --->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((registration) => {
+              console.log("Service Worker :", registration);
+            })
+            .catch((error) => {
+              console.log("Service Worker has Error:", error);
+            });
+        });
+      }
+    </script>
+    <--- End of service worker code --->
+  </head>
+  <body>
+    <script src="flutter_bootstrap.js" async=""></script>
+    <script src="main.dart.js" type="application/javascript"></script>
+  </body>
+</html>
 ```
