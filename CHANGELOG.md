@@ -12,4 +12,11 @@
 - fix: readme and changelog
 - update: flutter_lints version
 - fix: unused packages removed
-- add: getImages method added ( This method is gives ImageProvider )
+- add: getImages method added ( This method is gives ImageProvider)
+
+## 0.0.4
+
+- add: CachedImage widget added
+- fix: readme and changelog
+- fix: unused packages removed
+- update: example project
