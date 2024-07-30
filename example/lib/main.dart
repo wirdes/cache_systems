@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cache_systems/cache_systems.dart';
 import 'package:flutter/material.dart';
 
@@ -14,12 +13,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Cache Systems Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Cache Systems Demo'),
+      home: MyHomePage(title: 'Cache Systems Demo'),
     );
   }
 }
@@ -33,7 +29,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<File?> files = [];
+  List<CacheFile?> files = [];
 
   @override
   void initState() {
@@ -48,6 +44,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final imgUri = Uri.parse(
+      'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs',
+    );
     return Scaffold(
       body: Column(
         children: [
@@ -55,27 +54,13 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Center(
-                  child: Text(
-                    'Cache Systems Demo',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ),
+                // For Image
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image.network(
-                        'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs',
-                        height: 100,
-                        width: 100,
-                      ),
-                    ),
-                    FutureBuilder(
+                    FutureBuilder<CacheFile?>(
                       future: CacheSystem().get(
-                        Uri.parse(
-                          'https://fastly.picsum.photos/id/91/1500/1500.jpg?hmac=gFLcWG7TwMqsOm5ZizQJNJ2tYsENkSQdMMmNNp8Avvs',
-                        ),
+                        imgUri,
                         fileType: CacheFileType.image,
                       ),
                       builder: (context, snapshot) {
@@ -83,15 +68,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Image.file(
-                              File(snapshot.data!.path),
+                              snapshot.data!.file,
                               height: 100,
                               width: 100,
                             ),
                           );
                         }
-                        return const SizedBox();
+                        return const SizedBox.shrink();
                       },
                     ),
+                    // or use the CachedImage widget
+                    CachedImage(url: imgUri, height: 100, width: 100),
                   ],
                 ),
               ],
@@ -108,11 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     itemCount: files.length,
                     itemBuilder: (context, index) {
-                      final file = files[index];
+                      final cachefile = files[index];
+                      if (cachefile!.fileType != 'image/*') {
+                        return const SizedBox.shrink();
+                      }
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Image.file(
-                          File(file!.path),
+                          cachefile.file,
                           height: 100,
                           width: 100,
                         ),
