@@ -25,3 +25,7 @@
 
 - fix: package description updated
 - fix: dart format problem
+
+## 0.0.6
+
+- fix: readme

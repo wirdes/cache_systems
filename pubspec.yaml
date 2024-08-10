@@ -1,7 +1,8 @@
 name: cache_systems
 description: A Flutter package for caching various file types (images, videos, text, etc.) on a device, including those from the internet.
-version: 0.0.5
-homepage: https://github.com/wirdes/cache_systems
+version: 0.0.6
+repository: https://github.com/wirdes/cache_systems
+homepage: https://merterim.dev
 
 
 environment:

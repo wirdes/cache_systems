@@ -1,33 +1,29 @@
-# cache_system
+# Cache Systems
+[![Pub Version](https://img.shields.io/pub/v/cache_systems)](https://pub.dev/packages/cache_systems)
 
 This package for flutter is used to cache files in the device. It can be used to cache images, videos, audios, text and other files. It can also be used to cache files from the internet.
 <br>
-[![Pub Version](https://img.shields.io/pub/v/cache_systems)](https://pub.dev/packages/cache_systems)
+# 🛠 Getting Started
 
-## Platform Support
 
-| macOS | Windows | Linux | Web | Android | iOS |
-| :---: | :-----: | :---: | :-: | :-----: | :-: |
-|  ✅   |   ✅    |  ✅   | ❌  |   ✅    | ✅  |
+## Initial Configurations
 
-** For web support you need to add a service worker to your web project. You can find the details at the bottom of the documentation
-
-# Install
-
-- Add `cache_systems` to your dependencies list in `pubspec.yaml` file
+Add the `cache_systems` plugin to your project's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  cache_systems: ^0.0.4
+  cache_systems: ^[version] # <~ always ensure to use the latest version
 ```
 
-- Run `flutter packages get` from your root project
+After adding the dependency, run the following command to get the package:
 
-- import the package by `import 'package:cache_systems/cache_systems.dart';`
+```bash
+flutter pub get
+```
 
-## Usage
+# 📝 Usage
 
 ### Cache files from the internet
 
@@ -110,7 +106,7 @@ If you want get all the cached files, you can use the `CacheSystem().getAllFiles
   }
 ```
 
-### Web Support (Service Worker)
+# ⚡️ Web Support (Service Worker)
 
 To use the cache system in the web, you need to add a service worker to your web project. You can add a service worker by creating a `web` folder in your project and adding a `service_worker.js` file to the `web` folder. The `service_worker.js` file should contain the following code.
 
