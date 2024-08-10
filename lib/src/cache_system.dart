@@ -6,12 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
-enum CacheFileType {
-  image,
-  video,
-  audio,
-  pdf
-}
+enum CacheFileType { image, video, audio, pdf }
 
 const String _cacheName = 'cache';
 
@@ -100,7 +95,8 @@ class CacheSystem {
   }) async {
     CacheFile? file = _cacheDB.get(url.toString());
     if (file != null) {
-      if (file.expiration != null && file.expiration!.isBefore(DateTime.now())) {
+      if (file.expiration != null &&
+          file.expiration!.isBefore(DateTime.now())) {
         _cacheDB.delete(url.toString());
         return await get(url, process: process, name: name);
       }
@@ -108,14 +104,16 @@ class CacheSystem {
     } else {
       final tmpDirectory = await getApplicationDocumentsDirectory();
       final String newPath = '${tmpDirectory.path}/${name ?? url.toString()}';
-      final res = await _dio.downloadUri(url, newPath, onReceiveProgress: process);
+      final res =
+          await _dio.downloadUri(url, newPath, onReceiveProgress: process);
       if (res.statusCode != 200) {
         throw Exception('Failed to download file');
       }
       final newFile = CacheFile(
         newPath,
         _getFileType(fileType: fileType, name: name),
-        expiration: _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
+        expiration:
+            _stalePeriod != null ? DateTime.now().add(_stalePeriod!) : null,
       );
       await _cacheDB.put(url.toString(), newFile);
 

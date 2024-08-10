@@ -1,6 +1,6 @@
 name: cache_systems
-description: This package for flutter is used to cache files in the device. It can be used to cache images, videos, audios, text and other files. It can also be used to cache files from the internet.
-version: 0.0.4
+description: A Flutter package for caching various file types (images, videos, text, etc.) on a device, including those from the internet.
+version: 0.0.5
 homepage: https://github.com/wirdes/cache_systems
 
 

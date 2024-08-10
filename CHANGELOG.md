@@ -20,3 +20,8 @@
 - fix: readme and changelog
 - fix: unused packages removed
 - update: example project
+
+## 0.0.5
+
+- fix: package description updated
+- fix: dart format problem
